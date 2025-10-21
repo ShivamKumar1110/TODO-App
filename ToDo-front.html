@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODO List-No LogIn Required</title>
+  <link rel="stylesheet" href="ToDo-css.css">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2490/2490402.png" type="image/png">
+</head>
+<body><center>
+  <img src="https://cdn-icons-png.flaticon.com/512/2490/2490402.png" style="height: 100px;" width="100px">
+  <h1 style="font-size: 50px; color: chocolate; text-shadow: 2px 2px rgb(48, 29, 16);">TODO</h1>
+  </center>
+  <div style="display: flex; justify-content: center;">
+  <input id="todo-input" type="text" placeholder="Add your To-Do item" style="margin-right: 100px;margin-top: 30px; border-radius: 15px; height:40px;width: 500px; font-size: 30px;"></input>
+  <input id="todo-date" type="date" style="margin-right: 100px;margin-top: 30px; border-radius: 15px; height:40px;width: 200px; font-size: 30px;">
+  <button id="add-btn" style="border-radius: 10px;margin-top: 30px; height:45px;width: 100px; font-size: 30px; cursor: pointer; border: none;">ADD</button>
+
+
+  </div>
+
+    <ul id="todo-list" style="list-style: none; padding: 0; margin-top: 30px; text-align: center; font-size: 25px;"></ul>
+
+<script>
+  const addBtn = document.getElementById("add-btn");
+  const todoInput = document.getElementById("todo-input");
+  const todoDate = document.getElementById("todo-date");
+  const todoList = document.getElementById("todo-list");
+
+  window.addEventListener("DOMContentLoaded", loadTodos);
+
+  addBtn.addEventListener("click", () => {
+    const text = todoInput.value.trim();
+    const date = todoDate.value;
+
+    if (text === "") {
+      alert("Please enter a To-Do item!");
+      return;
+    }
+
+    const todo = { id: Date.now(), text, date, completed: false };
+    addTodoToList(todo);
+    saveTodoToLocal(todo);
+
+    todoInput.value = "";
+    todoDate.value = "";
+  });
+
+  function addTodoToList(todo) {
+    const li = document.createElement("li");
+    li.style.margin = "10px 0";
+    li.setAttribute("data-id", todo.id);
+
+    li.innerHTML = `
+      <span class="todo-text" style="text-decoration:${todo.completed ? "line-through" : "none"};">
+        ${todo.text}
+      </span>
+      <span style="color: gray;">(${todo.date || "No date"})</span>
+      <button class="complete-btn" style="margin-left: 15px; cursor: pointer; border:none; background:green; color:white; border-radius:8px;">
+        ${todo.completed ? "Undo" : "Done"}
+      </button>
+      <button class="edit-btn" style="margin-left: 10px; cursor: pointer; border:none; background:orange; color:white; border-radius:8px;">Edit</button>
+      <button class="delete-btn" style="margin-left: 10px; cursor: pointer; border:none; background:red; color:white; border-radius:8px;">Delete</button>
+    `;
+
+    // Done/Undo
+    li.querySelector(".complete-btn").addEventListener("click", () => {
+      todo.completed = !todo.completed;
+      updateTodoInLocal(todo);
+      li.querySelector(".todo-text").style.textDecoration = todo.completed ? "line-through" : "none";
+      li.querySelector(".complete-btn").textContent = todo.completed ? "Undo" : "Done";
+    });
+
+    //  Edit
+    li.querySelector(".edit-btn").addEventListener("click", () => {
+      const newText = prompt("Edit your task:", todo.text);
+      const newDate = prompt("Edit date (YYYY-MM-DD):", todo.date);
+      if (newText && newText.trim() !== "") {
+        todo.text = newText.trim();
+        todo.date = newDate || todo.date;
+        updateTodoInLocal(todo);
+        li.querySelector(".todo-text").textContent = todo.text;
+        li.querySelector("span:nth-child(2)").textContent = `(${todo.date || "No date"})`;
+      }
+    });
+
+    //  Delete
+    li.querySelector(".delete-btn").addEventListener("click", () => {
+      li.remove();
+      removeTodoFromLocal(todo.id);
+    });
+
+    todoList.appendChild(li);
+  }
+
+  //  Local Storage Functions
+  function saveTodoToLocal(todo) {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos.push(todo);
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }
+
+  function updateTodoInLocal(updatedTodo) {
+    let todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos = todos.map(todo => todo.id === updatedTodo.id ? updatedTodo : todo);
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }
+
+  function removeTodoFromLocal(id) {
+    let todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos = todos.filter(todo => todo.id !== id);
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }
+
+  function loadTodos() {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos.forEach(todo => addTodoToList(todo));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+#add-btn{
+  background-color: green;
+  color: white;
+}
+#add-btn:hover{
+  background-color: darkgreen;
+}
+body {
+  background-color: lightyellow;
+}
